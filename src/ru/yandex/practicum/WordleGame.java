@@ -13,8 +13,8 @@ public class WordleGame {
     private WordleDictionary dictionary;
     private FileWriter fileWriter;
 
-    public List<String> allAttempts = new ArrayList<>();         // Все введённые слова
-    public List<char[]> attemptStatuses = new ArrayList<>();     // Статусы подсказок для каждого слова ("^+- -+")
+    public List<String> allAttempts = new ArrayList<>();
+    public List<char[]> attemptStatuses = new ArrayList<>();
 
     public WordleGame(WordleDictionary dictionary, Path logPath) {
         this.dictionary = dictionary;
@@ -46,7 +46,6 @@ public class WordleGame {
 
             if (playerWord.isEmpty()) {
                 String suggestion = suggestWord();
-                // suggestWord() теперь ГАРАНТИРОВАННО возвращает слово (если словарь непустой)
                 System.out.println("Автоввод: " + suggestion);
                 playerWord = suggestion;
             }
@@ -86,10 +85,6 @@ public class WordleGame {
         writeToLog("Установлено новое количество попыток: " + steps);
     }
 
-    /**
-     * Генерация подсказок в стиле Wordle.
-     * Возвращает массив символов длины 5, содержащий '^', '+', '-'.
-     */
     public char[] tips(String word) {
         char[] result = new char[5];
 
@@ -98,7 +93,6 @@ public class WordleGame {
 
         boolean[] used = new boolean[5];
 
-        // 1. '^' — точные совпадения
         for (int i = 0; i < 5; i++) {
             if (player[i] == game[i]) {
                 result[i] = '^';
@@ -106,7 +100,6 @@ public class WordleGame {
             }
         }
 
-        // 2. '+' — правильная буква, но не на месте; '-' — иначе
         for (int i = 0; i < 5; i++) {
             if (result[i] == '^') continue;
 
@@ -129,11 +122,6 @@ public class WordleGame {
         return result;
     }
 
-
-    /**
-     * Автоматическое предложение следующего слова.
-     * Гарантированно возвращает слово (если в словаре есть 5-буквенные слова).
-     */
     public String suggestWord() {
 
         List<String> words = dictionary.getAllWords();
@@ -146,7 +134,6 @@ public class WordleGame {
 
         extractRules(exact, wrongPos, forbiddenLetters, mustHave);
 
-        // 1. Жёсткая фильтрация (как в Wordle)
         for (String word : words) {
 
             if (word == null) continue;
@@ -156,7 +143,6 @@ public class WordleGame {
 
             boolean ok = true;
 
-            // точные позиции
             for (var e : exact.entrySet()) {
                 if (word.charAt(e.getKey()) != e.getValue()) {
                     ok = false;
@@ -165,7 +151,6 @@ public class WordleGame {
             }
             if (!ok) continue;
 
-            // обязательные буквы
             for (char c : mustHave) {
                 if (word.indexOf(c) == -1) {
                     ok = false;
@@ -174,7 +159,6 @@ public class WordleGame {
             }
             if (!ok) continue;
 
-            // буквы, которых нет
             for (char c : word.toCharArray()) {
                 if (forbiddenLetters.contains(c)) {
                     ok = false;
@@ -183,7 +167,6 @@ public class WordleGame {
             }
             if (!ok) continue;
 
-            // буквы, которые не должны быть на определённых позициях
             for (var e : wrongPos.entrySet()) {
                 char letter = e.getKey();
                 for (int pos : e.getValue()) {
@@ -202,7 +185,6 @@ public class WordleGame {
             return possible.get(new Random().nextInt(possible.size()));
         }
 
-        // 2. Ослабляем критерии — оставляем только '^' (точные позиции)
         List<String> fallback = new ArrayList<>();
 
         for (String word : words) {
@@ -227,7 +209,6 @@ public class WordleGame {
             return fallback.get(new Random().nextInt(fallback.size()));
         }
 
-        // 3. Возвращаем ЛЮБОЕ неиспользованное слово длиной 5
         for (String word : words) {
             if (word == null) continue;
             word = word.trim();
@@ -236,7 +217,6 @@ public class WordleGame {
             }
         }
 
-        // 4. Если ВСЕ слова использованы (крайне редко) — возвращаем любое 5-буквенное
         for (String word : words) {
             if (word == null) continue;
             word = word.trim();
@@ -245,22 +225,15 @@ public class WordleGame {
             }
         }
 
-        // Защитный возврат (если словарь пуст или неверно настроен)
         return "слово";
     }
 
-    /**
-     * Извлекает правила из всех предыдущих попыток.
-     * Делается в два прохода: сначала собираются mustHave, exact, wrongPos,
-     * затем на втором проходе помечаются forbiddenLetters для '-' только если буква нигде не была '+' или '^'.
-     */
     private void extractRules(
             Map<Integer, Character> exact,
             Map<Character, Set<Integer>> wrongPos,
             Set<Character> forbiddenLetters,
             Set<Character> mustHave
     ) {
-        // Первый проход: собираем exact и mustHave и wrongPos (из ^ и +)
         for (int a = 0; a < allAttempts.size(); a++) {
             String attempt = allAttempts.get(a);
             char[] status = attemptStatuses.get(a);
@@ -276,11 +249,10 @@ public class WordleGame {
                     mustHave.add(ch);
                     wrongPos.computeIfAbsent(ch, k -> new HashSet<>()).add(i);
                 }
-                // '-' будем обрабатывать во втором проходе
+
             }
         }
 
-        // Второй проход: помечаем запрещённые буквы ('-') только если они нигде не были '+' или '^'
         for (int a = 0; a < allAttempts.size(); a++) {
             String attempt = allAttempts.get(a);
             char[] status = attemptStatuses.get(a);
