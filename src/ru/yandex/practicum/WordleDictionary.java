@@ -14,27 +14,27 @@ public class WordleDictionary {
     private static List<String> words;
     ArrayList<String> usedWords = new ArrayList<>();
 
-  public WordleDictionary(List<String> list) {
-      words = list;
-  }
+    public WordleDictionary(List<String> list) {
+        words = list;
+    }
 
-  public String getNewWord() {
-      Random rand = new Random();
-      String word;
-      while(true) {
-          int ranWord = rand.nextInt(1, words.size());
-          word = words.get(ranWord);
+    public String getNewWord() {
+        Random rand = new Random();
+        String word;
+        while (true) {
+            int ranWord = rand.nextInt(1, words.size());
+            word = words.get(ranWord);
 
-          if(word.length() != 5) {
-              continue;
-          } else {
-              word = word.toLowerCase().replace("ё", "е");
-              break;
-          }
+            if (word.length() != 5) {
+                continue;
+            } else {
+                word = word.toLowerCase().replace("ё", "е");
+                break;
+            }
 
-      }
-      return word;
-  }
+        }
+        return word;
+    }
 
     public boolean wordChek(String word) {
         if (word.length() != 5) {
