@@ -21,11 +21,11 @@ public class WordleDictionary {
   public String getNewWord() {
       Random rand = new Random();
       String word;
-      while(true) {
+      while (true) {
           int ranWord = rand.nextInt(1, words.size());
           word = words.get(ranWord);
 
-          if(word.length() != 5) {
+          if (word.length() != 5) {
               continue;
           } else {
               word = word.toLowerCase().replace("ё", "е");
